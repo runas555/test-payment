@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Оплата через SMS</title>
+    <title>Оплата через СберБанк</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,102 +11,116 @@
             margin: 0 auto;
             padding: 20px;
             text-align: center;
+            background-color: #f5f5f5;
         }
         .container {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            color: #333;
+            color: #21A038; /* Зеленый Сбера */
+            margin-bottom: 25px;
         }
         .form-group {
-            margin: 15px 0;
+            margin: 20px 0;
+            text-align: left;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: bold;
+            color: #333;
         }
         input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             font-size: 16px;
+            box-sizing: border-box;
         }
         button {
-            background: #4CAF50;
+            background: #21A038;
             color: white;
             border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 5px;
+            padding: 14px 24px;
+            font-size: 17px;
+            border-radius: 8px;
             cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            font-weight: bold;
             transition: background 0.3s;
         }
         button:hover {
-            background: #45a049;
+            background: #1A8A2E;
         }
-        .sms-info {
+        .note {
             margin-top: 20px;
             font-size: 14px;
             color: #666;
+        }
+        .sber-logo {
+            width: 120px;
+            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Оплата через SMS</h1>
+        <img src="https://cdn-icons-png.flaticon.com/512/5969/5969384.png" alt="СберБанк" class="sber-logo">
+        <h1>Оплата через СберБанк</h1>
         
         <div class="form-group">
-            <label for="recipient">Номер получателя:</label>
+            <label for="recipient">Номер телефона получателя:</label>
             <input type="tel" id="recipient" placeholder="79991234567" value="79991234567">
         </div>
         
         <div class="form-group">
-            <label for="amount">Сумма перевода:</label>
-            <input type="text" id="amount" placeholder="1000руб" value="1000руб">
+            <label for="amount">Сумма перевода (рубли):</label>
+            <input type="number" id="amount" placeholder="1000" value="1000">
         </div>
         
-        <button onclick="sendPaymentSMS()">Оплатить через SMS</button>
+        <button onclick="openSberPay()">Оплатить в приложении Сбера</button>
         
-        <div class="sms-info">
-            После нажатия откроется SMS с текстом: <br>
-            <strong id="sms-preview">Перевод 79991234567 1000руб</strong>
+        <div class="note">
+            После нажатия откроется приложение СберБанк Онлайн с готовой формой перевода.
+            Если приложение не установлено, вы будете перенаправлены на сайт СберБанка.
         </div>
     </div>
 
     <script>
-        // Обновляем предпросмотр SMS при изменении полей
-        document.getElementById('recipient').addEventListener('input', updateSmsPreview);
-        document.getElementById('amount').addEventListener('input', updateSmsPreview);
-
-        function updateSmsPreview() {
-            const recipient = document.getElementById('recipient').value;
-            const amount = document.getElementById('amount').value;
-            document.getElementById('sms-preview').textContent = `Перевод ${recipient} ${amount}`;
-        }
-
-        // Основная функция отправки SMS
-        function sendPaymentSMS() {
-            const recipient = document.getElementById('recipient').value;
-            const amount = document.getElementById('amount').value;
-            const smsNumber = "900"; // Номер, на который отправляется SMS
-            const smsText = `Перевод ${recipient} ${amount}`;
-
-            // Проверяем, мобильное ли устройство
-            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-            if (isMobile) {
-                // Для мобильных - открываем SMS
-                window.open(`sms:${smsNumber}?body=${encodeURIComponent(smsText)}`, '_blank');
-            } else {
-                // Для ПК - показываем инструкцию
-                alert(`Откройте приложение SMS и отправьте:\nНомер: ${smsNumber}\nТекст: ${smsText}`);
+        function openSberPay() {
+            // Получаем данные из формы
+            const phone = document.getElementById('recipient').value.replace(/\D/g, '');
+            const amount = document.getElementById('amount').value.replace(/\D/g, '');
+            
+            // Проверяем, что номер и сумма введены
+            if (!phone || !amount) {
+                alert('Пожалуйста, укажите номер получателя и сумму');
+                return;
             }
+            
+            // Формируем ссылку для открытия приложения Сбера
+            const sberDeepLink = `sberbank://moneytransfer?phone=${phone}&amount=${amount}`;
+            
+            // Пытаемся открыть приложение
+            window.location.href = sberDeepLink;
+            
+            // Если приложение не открылось через 500 мс - перенаправляем на сайт
+            setTimeout(() => {
+                if (!document.hidden) {
+                    window.open('https://www.sberbank.com/ru/person', '_blank');
+                }
+            }, 500);
         }
+        
+        // Маска для ввода телефона
+        document.getElementById('recipient').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '');
+        });
     </script>
 </body>
 </html>
